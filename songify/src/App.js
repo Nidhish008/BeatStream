@@ -1,88 +1,92 @@
 import { useState, useEffect, useRef } from "react";
-import { Play, Pause, SkipForward, SkipBack } from "lucide-react";
-import "./App.css";
+import { Play, Pause, SkipForward, SkipBack, Star } from "lucide-react";
+import "./Styles.css";
 
-const Button = ({ children, onClick }) => (
-  <button className="music-btn" onClick={onClick}>
+const ControlButton = ({ children, onClick }) => (
+  <button className="control-btn" onClick={onClick}>
     {children}
   </button>
 );
 
-const songs = [
-  "/songs/song 1.mp3",
-  "/songs/song 2.mp3",
-  "/songs/song 3.mp3",
-  "/songs/song 4.mp3",
-  "/songs/song 5.mp3",
+const tracks = [
+  "/music/track1.mp3",
+  "/music/track2.mp3",
+  "/music/track3.mp3",
+  "/music/track4.mp3",
 ];
 
-export default function MusicPlayer() {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const audioRef = useRef(new Audio(songs[currentIndex]));
+export default function BeatBox() {
+  const [currentTrack, setCurrentTrack] = useState(0);
+  const [playing, setPlaying] = useState(false);
+  const [likedSongs, setLikedSongs] = useState([]);
+  const [viewLiked, setViewLiked] = useState(false);
+  const audioRef = useRef(new Audio(tracks[currentTrack]));
 
   useEffect(() => {
-    audioRef.current.src = songs[currentIndex];
-    if (isPlaying) audioRef.current.play();
-  }, [currentIndex]);
+    audioRef.current.src = tracks[currentTrack];
+    if (playing) audioRef.current.play();
+  }, [currentTrack]);
 
-  const togglePlayPause = () => {
-    if (isPlaying) {
+  const handlePlayPause = () => {
+    if (playing) {
       audioRef.current.pause();
     } else {
       audioRef.current.play();
     }
-    setIsPlaying(!isPlaying);
+    setPlaying(!playing);
   };
-
-  const nextTrack = () => {
-    setCurrentIndex((prev) => (prev + 1) % songs.length);
+  const nextSong = () => {
+    setCurrentTrack((prev) => (prev + 1) % tracks.length);
   };
-
-  const prevTrack = () => {
-    setCurrentIndex((prev) => (prev - 1 + songs.length) % songs.length);
+  const prevSong = () => {
+    setCurrentTrack((prev) => (prev - 1 + tracks.length) % tracks.length);
   };
-
-  const selectSong = (index) => {
-    setCurrentIndex(index);
-    setIsPlaying(true);
+  const chooseTrack = (index) => {
+    setCurrentTrack(index);
+    setPlaying(true);
     audioRef.current.play();
+  };
+  const toggleLike = (song) => {
+    setLikedSongs(likedSongs.includes(song) ? likedSongs.filter((s) => s !== song) : [...likedSongs, song]);
   };
 
   return (
-    <>
-    <div className = "heading">
-      <h1>Songify</h1>
-      <p>🎶 Your Music Player 🎶</p>
-      <p>Click on a song to play it!</p>
-    </div>
-    <div className="music-player-container">
-      {/* 🎵 Left Side - Song List */}
-      <div className="song-list">
-        <h2>Playlist</h2>
-        <ul>
-          {songs.map((song, index) => (
-            <li
-              key={index}
-              className={index === currentIndex ? "active" : ""}
-              onClick={() => selectSong(index)}
-            >
-              {song.split("/").pop()}
-            </li>
-          ))}
-        </ul>
-      </div>
+    <div className="beatbox-app">
+      <header>
+        <h1>BeatBox</h1>
+        <p>Feel the Rhythm</p>
+      </header>
 
-      {/* 🎶 Right Side - Player */}
-      <div className="player">
-        <h1>{songs[currentIndex].split("/").pop()}</h1>
-        <div className="controls">
-          <Button onClick={prevTrack}><SkipBack /></Button>
-          <Button onClick={togglePlayPause}>{isPlaying ? <Pause /> : <Play />}</Button>
-          <Button onClick={nextTrack}><SkipForward /></Button>
+      <div className="beatbox-container">
+        <div className="track-list">
+          <div className="tab-buttons">
+            <button onClick={() => setViewLiked(false)}>All Tracks</button>
+            <button onClick={() => setViewLiked(true)}>Favorites ⭐</button>
+          </div>
+
+          <h2>{viewLiked ? "Liked Tracks" : "Music Library"}</h2>
+          <ul>
+            {(viewLiked ? likedSongs : tracks).map((track, index) => (
+              <li key={index} className={index === currentTrack ? "playing" : ""}>
+                <span onClick={() => chooseTrack(index)}>{track.split("/").pop()}</span>
+                <button className="like-btn" onClick={() => toggleLike(track)}>
+                  <Star color={likedSongs.includes(track) ? "gold" : "white"} fill={likedSongs.includes(track) ? "gold" : "none"} />
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="music-controller">
+          <h2>Now Playing</h2>
+          <h1>{tracks[currentTrack].split("/").pop()}</h1>
+          <div className="player-controls">
+            <ControlButton onClick={prevSong}><SkipBack /></ControlButton>
+            <ControlButton onClick={handlePlayPause}>{playing ? <Pause /> : <Play />}</ControlButton>
+            <ControlButton onClick={nextSong}><SkipForward /></ControlButton>
+          </div>
         </div>
       </div>
     </div>
-    </>
   );
 }
+
